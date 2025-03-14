@@ -1,5 +1,7 @@
 # RTL-SDR Icecast Streamer
 
+<img width="970" alt="rtl_icecast" src="https://github.com/user-attachments/assets/305a31e2-0fc4-49e5-905b-35808e5bc6da" />
+
 A command-line application that uses RTL-SDR to receive FM radio signals and stream them to an Icecast server in MP3 format.
 
 The main target usage for this app is to stream your local HAM FM repeater audio to your public shoutcast/icecast server with just a RTL-SDR USB-receiver and for example Raspberry Pi. It can be used to stream broadcast FM too, of course.
