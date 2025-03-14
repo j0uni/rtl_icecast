@@ -50,11 +50,8 @@ sudo ldconfig
 ### 2. Clone and Build RTL-Icecast
 
 ```bash
-git clone THIS_REPO
+git clone [THIS_REPO](https://github.com/j0uni/rtl_iceccast
 cd rtl_icecast
-mkdir build
-cd build
-cmake ..
 make
 ```
 
@@ -114,23 +111,6 @@ Adjust the values according to your needs:
 
 - `-c, --config <file>`: Use specified config file (default: config.ini)
 - `-h, --help`: Show help message
-
-### Examples
-
-Tune to 101.5 MHz with default settings:
-```bash
-./rtl_icecast -c config.ini
-```
-
-Use narrow FM mode with squelch:
-```bash
-./rtl_icecast --narrow --squelch -35
-```
-
-Enable low-cut filter at 200 Hz:
-```bash
-./rtl_icecast --lowcut 200
-```
 
 ## Status Display
 
