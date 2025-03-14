@@ -1,0 +1,33 @@
+[rtl_sdr]
+sample_rate = 1024000
+
+center_freq_mhz = 145.75
+gain_mode = 0
+fm_mode = narrow    ; wide or narrow
+
+[audio]
+audio_rate = 48000
+mp3_bitrate = 128
+mp3_quality = 2
+audio_buffer_seconds = 2
+
+[audio_filters]
+lowcut_enabled = true    ; true or false
+lowcut_freq = 500.0      ; in Hz, frequencies below this will be attenuated
+lowcut_order = 4         ; filter order (higher = steeper cutoff, but more CPU)
+
+[squelch]
+enabled = true    ; true or false
+threshold = -20.0  ; in dB, signals below this will be muted
+hold_time = 500    ; in milliseconds, how long to keep squelch open after signal drops
+
+[icecast]
+host = server.com
+port = 8000
+mount = /rtl-fm-stream.mp3
+password = your_streamer_password
+user = source
+protocol = http    ; only http is supported for now
+format = mp3
+reconnect_attempts = 5
+reconnect_delay_ms = 2000 
