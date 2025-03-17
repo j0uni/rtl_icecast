@@ -40,8 +40,8 @@ iirfilt_rrrf lowcut_filter = nullptr;  // Low-cut filter
 #define CENTER_FREQ 99.9e6   // 99.9 MHz
 #define RTL_READ_SIZE (16 * 16384)
 
-#define NFM_DEVIATION 12500    // 12.5 kHz for NFM
-#define NFM_FILTER_BW 8000   // 8 kHz for NFM
+#define NFM_DEVIATION 12500    
+#define NFM_FILTER_BW 12500*2  
 
 #define WFM_DEVIATION 75000   // 75 kHz for WBFM
 #define WFM_FILTER_BW 120000  // 120 kHz for WFM
@@ -815,6 +815,23 @@ int main(int argc, char* argv[]) {
     rtlsdr_set_center_freq(g_dev, freq_hz); 
     rtlsdr_set_sample_rate(g_dev, g_config.sample_rate);
     rtlsdr_set_tuner_gain_mode(g_dev, g_config.gain_mode);
+    if (g_config.gain_mode == 1) {
+        
+        int tuner_gains[16];
+        int num_gains = rtlsdr_get_tuner_gains(g_dev, tuner_gains);
+        printf("Allowed gain setting values (1/10 dB): %d\n", num_gains);
+        for (int i = 0; i < num_gains; i++) {
+            printf("%d ", tuner_gains[i]);
+        }
+        printf("\n");   
+        
+        // Valid gain values (in t/*enths of a dB) for the E4000 tuner:
+        // -10, 15, 40, 65, 90, 115, 140, 165, 190,
+        // 215, 240, 290, 340, 420, 430, 450, 470, 490
+        // 15dB is the default gain for the E4000 tuner
+
+        rtlsdr_set_tuner_gain(g_dev, 90);
+    }
     rtlsdr_reset_buffer(g_dev);
     
     // Initialize resampler
