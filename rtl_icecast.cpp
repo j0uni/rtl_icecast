@@ -39,9 +39,11 @@ iirfilt_rrrf lowcut_filter = nullptr;  // Low-cut filter
 #define AUDIO_RATE 48000     // 48 kHz
 #define CENTER_FREQ 99.9e6   // 99.9 MHz
 #define RTL_READ_SIZE (16 * 16384)
+
+#define NFM_DEVIATION 12500    // 5 kHz for NFM
+#define NFM_FILTER_BW 8000   // 12.5 kHz for NFM
+
 #define WFM_DEVIATION 75000   // 75 kHz for WBFM
-#define NFM_DEVIATION 5000    // 5 kHz for NFM
-#define NFM_FILTER_BW 12500   // 12.5 kHz for NFM
 #define WFM_FILTER_BW 120000  // 120 kHz for WFM
 
 #define AUDIO_BUFFER_IN_SECONDS 2
@@ -93,11 +95,99 @@ void signal_handler(int sig) {
     }
 }
 
-// Simple FM demodulator
+// Advanced FM demodulator with phase unwrapping, DC blocking and de-emphasis
+class FMDemodulator {
+private:
+    std::complex<float> prev_sample;
+    float prev_demod;
+    float dc_block_alpha;
+    float dc_avg;
+    float deemph_alpha;
+    float deemph_prev;
+    bool use_deemphasis;
+    float deviation;
+    float sample_rate;
+    
+public:
+    FMDemodulator() : 
+        prev_sample(1.0f, 0.0f),
+        prev_demod(0.0f),
+        dc_block_alpha(0.01f),
+        dc_avg(0.0f),
+        deemph_alpha(0.0f),
+        deemph_prev(0.0f),
+        use_deemphasis(true),
+        deviation(WFM_DEVIATION),
+        sample_rate(SAMPLE_RATE) {
+        // Initialize de-emphasis filter
+        // Time constant is 75µs for US FM broadcasts, 50µs for Europe
+        float time_constant = 75e-6f; // 75µs for US
+        deemph_alpha = 1.0f - expf(-1.0f / (time_constant * sample_rate));
+    }
+    
+    void setMode(FMMode mode, float sampleRate) {
+        deviation = (mode == FMMode::WIDE) ? WFM_DEVIATION : NFM_DEVIATION;
+        sample_rate = sampleRate;
+        
+        // Update de-emphasis filter for new sample rate
+        float time_constant = (mode == FMMode::WIDE) ? 75e-6f : 50e-6f; // 75µs for WFM, 50µs for NFM
+        deemph_alpha = 1.0f - expf(-1.0f / (time_constant * sample_rate));
+        
+        // Use de-emphasis only for wide FM
+        use_deemphasis = (mode == FMMode::WIDE);
+    }
+    
+    void reset() {
+        prev_sample = std::complex<float>(1.0f, 0.0f);
+        prev_demod = 0.0f;
+        dc_avg = 0.0f;
+        deemph_prev = 0.0f;
+    }
+    
+    float demodulate(std::complex<float> sample) {
+        // Phase difference demodulation with unwrapping
+        float phase = std::arg(sample * std::conj(prev_sample));
+        
+        // Phase unwrapping for large frequency deviations
+        if (phase > M_PI) phase -= 2.0f * M_PI;
+        else if (phase < -M_PI) phase += 2.0f * M_PI;
+        
+        // Convert phase to audio sample
+        float demod = phase * (sample_rate / (2.0f * M_PI * deviation));
+        
+        // DC blocking filter
+        dc_avg = dc_avg * (1.0f - dc_block_alpha) + demod * dc_block_alpha;
+        float dc_blocked = demod - dc_avg;
+        
+        // De-emphasis filter (1st order IIR low-pass)
+        float result;
+        if (use_deemphasis) {
+            deemph_prev = deemph_prev + deemph_alpha * (dc_blocked - deemph_prev);
+            result = deemph_prev;
+        } else {
+            result = dc_blocked;
+        }
+        
+        // Update state for next sample
+        prev_sample = sample;
+        prev_demod = demod;
+        
+        return result;
+    }
+    
+    // For compatibility with the old interface
+    float demodulate(std::complex<float> prev, std::complex<float> curr) {
+        prev_sample = prev;
+        return demodulate(curr);
+    }
+};
+
+// Global demodulator instance
+FMDemodulator g_demodulator;
+
+// Wrapper function for backward compatibility
 float fm_demod(std::complex<float> prev, std::complex<float> curr) {
-    float phase = std::arg(curr * std::conj(prev));
-    float deviation = (current_mode == FMMode::WIDE) ? WFM_DEVIATION : NFM_DEVIATION;
-    return phase * (g_config.sample_rate / (2.0f * M_PI * deviation));
+    return g_demodulator.demodulate(prev, curr);
 }
 
 // Initialize FM mode
@@ -121,6 +211,10 @@ void init_fm_mode(FMMode mode) {
         1.0f,
         60.0f
     );
+    
+    // Initialize the FM demodulator with the new mode
+    g_demodulator.setMode(mode, g_config.sample_rate);
+    g_demodulator.reset();
     
     printf("Initialized %s FM mode with %d Hz deviation and %.1f kHz filter\n",
            (mode == FMMode::WIDE) ? "Wide" : "Narrow",
