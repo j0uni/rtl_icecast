@@ -40,8 +40,8 @@ iirfilt_rrrf lowcut_filter = nullptr;  // Low-cut filter
 #define CENTER_FREQ 99.9e6   // 99.9 MHz
 #define RTL_READ_SIZE (16 * 16384)
 
-#define NFM_DEVIATION 12500    // 5 kHz for NFM
-#define NFM_FILTER_BW 8000   // 12.5 kHz for NFM
+#define NFM_DEVIATION 12500    // 12.5 kHz for NFM
+#define NFM_FILTER_BW 8000   // 8 kHz for NFM
 
 #define WFM_DEVIATION 75000   // 75 kHz for WBFM
 #define WFM_FILTER_BW 120000  // 120 kHz for WFM
@@ -82,6 +82,10 @@ struct StatusInfo {
 };
 StatusInfo current_status;
 
+// Timestamp for metadata updates
+std::chrono::steady_clock::time_point last_metadata_update;
+const int METADATA_UPDATE_INTERVAL_SEC = 10; // Update metadata every 10 seconds
+
 void signal_handler(int sig) {
     if (sig == SIGPIPE) {
         std::cerr << "Caught SIGPIPE - connection broken\n";
@@ -121,6 +125,8 @@ public:
         sample_rate(SAMPLE_RATE) {
         // Initialize de-emphasis filter
         // Time constant is 75µs for US FM broadcasts, 50µs for Europe
+        // For 75 µs (used in North America), the cutoff frequency is ~2.12 kHz.
+        // For 50 µs (used in Europe), the cutoff frequency is ~3.18 kHz.
         float time_constant = 75e-6f; // 75µs for US
         deemph_alpha = 1.0f - expf(-1.0f / (time_constant * sample_rate));
     }
@@ -134,7 +140,8 @@ public:
         deemph_alpha = 1.0f - expf(-1.0f / (time_constant * sample_rate));
         
         // Use de-emphasis only for wide FM
-        use_deemphasis = (mode == FMMode::WIDE);
+        use_deemphasis = (mode == FMMode::NARROW);
+
     }
     
     void reset() {
@@ -400,6 +407,63 @@ void rtl_thread_function(rtlsdr_dev_t *dev) {
     printf("RTL-SDR thread ending\n");
 }
 
+// Function to update Icecast metadata
+void update_icecast_metadata(shout_t* shout, double freq_mhz, float signal_db) {
+    if (!shout || !icecast_connected.load()) {
+        return;
+    }
+    
+    // Format frequency as artist name
+    std::stringstream artist_ss;
+    artist_ss << std::fixed << std::setprecision(2) << freq_mhz << " MHz";
+    std::string artist = artist_ss.str();
+    
+    // Format signal strength as song title
+    std::stringstream title_ss;
+    title_ss << std::fixed << std::setprecision(1) << signal_db << " dB";
+    std::string title = title_ss.str();
+    
+    // Format mode
+    std::string mode = (current_mode == FMMode::WIDE) ? "WFM" : "NFM";
+    
+    // Create complete title string with mode
+    std::string full_title = title + " [" + mode + "]";
+    
+    // Try the older API first, as it's more widely supported
+    try {
+        // Create metadata
+        shout_metadata_t *metadata = shout_metadata_new();
+        if (!metadata) {
+            std::cerr << "Failed to create metadata object" << std::endl;
+            return;
+        }
+        
+        // Set artist and title and check return values
+        int ret_artist = shout_metadata_add(metadata, "artist", artist.c_str());
+        int ret_title = shout_metadata_add(metadata, "title", full_title.c_str());
+        
+        if (ret_artist != SHOUTERR_SUCCESS || ret_title != SHOUTERR_SUCCESS) {
+            std::cerr << "Error adding metadata fields" << std::endl;
+            shout_metadata_free(metadata);
+            return;
+        }
+        
+        // Try using the older API first
+        int result = shout_set_metadata(shout, metadata);
+        
+        // Free metadata object
+        shout_metadata_free(metadata);
+        
+        if (result != SHOUTERR_SUCCESS) {
+            std::cerr << "Error updating metadata: " << shout_get_error(shout) << std::endl;
+        } else {
+            std::cout << "Updated metadata: " << artist << " - " << full_title << std::endl;
+        }
+    } catch (...) {
+        std::cerr << "Exception in metadata update" << std::endl;
+    }
+}
+
 // Function to reconnect to Icecast
 bool reconnect_icecast(shout_t* &shout) {
     std::cout << "Attempting to reconnect to Icecast...\n";
@@ -425,20 +489,32 @@ bool reconnect_icecast(shout_t* &shout) {
     shout_set_mount(shout, g_config.icecast_mount.c_str());
     shout_set_user(shout, g_config.icecast_user.c_str());
     shout_set_password(shout, g_config.icecast_password.c_str());
+    
+    // Use older API calls for better compatibility
     shout_set_format(shout, SHOUT_FORMAT_MP3);
+    
     shout_set_protocol(shout, SHOUT_PROTOCOL_HTTP);
     
-    // Always use blocking mode for connection
+    // Set station name using older API call
+    shout_set_name(shout, g_config.icecast_station_title.c_str());
+    
+    // Use blocking mode for initial connection
     shout_set_nonblocking(shout, 0);
     
-    // Try to connect
-    std::cout << "Connecting to " << g_config.icecast_host << ":" << g_config.icecast_port 
-              << g_config.icecast_mount << "...\n";
+    printf("Connecting to Icecast server %s:%d%s...\n", 
+           g_config.icecast_host.c_str(), g_config.icecast_port, g_config.icecast_mount.c_str());
     
     int err = shout_open(shout);
     if (err == SHOUTERR_SUCCESS) {
         std::cout << "Successfully connected to Icecast\n";
         icecast_connected = true;
+        
+        // Set initial metadata
+        uint32_t current_freq = rtlsdr_get_center_freq(g_dev);
+        float current_freq_mhz = current_freq / 1e6;
+        update_icecast_metadata(shout, current_freq_mhz, signal_strength.load());
+        last_metadata_update = std::chrono::steady_clock::now();
+        
         return true;
     }
     
@@ -454,6 +530,7 @@ void icecast_thread_function(shout_t* shout) {
     int consecutive_errors = 0;
     const std::chrono::milliseconds reconnect_delay(g_config.reconnect_delay_ms);
     auto last_connection_check = std::chrono::steady_clock::now();
+    last_metadata_update = std::chrono::steady_clock::now();
     
     while (running) {
         // Periodically check connection status (every 5 seconds)
@@ -464,6 +541,18 @@ void icecast_thread_function(shout_t* shout) {
                 icecast_connected = check_icecast_connection(shout);
             }
             last_connection_check = now;
+        }
+        
+        // Check if it's time to update metadata (every METADATA_UPDATE_INTERVAL_SEC seconds)
+        if (icecast_connected.load() && 
+            std::chrono::duration_cast<std::chrono::seconds>(now - last_metadata_update).count() >= METADATA_UPDATE_INTERVAL_SEC) {
+            
+            if (g_dev) {
+                uint32_t current_freq = rtlsdr_get_center_freq(g_dev);
+                float current_freq_mhz = current_freq / 1e6;
+                update_icecast_metadata(shout, current_freq_mhz, signal_strength.load());
+            }
+            last_metadata_update = now;
         }
         
         // Check connection status
@@ -759,8 +848,14 @@ int main(int argc, char* argv[]) {
     shout_set_mount(shout, g_config.icecast_mount.c_str());
     shout_set_user(shout, g_config.icecast_user.c_str());
     shout_set_password(shout, g_config.icecast_password.c_str());
+    
+    // Use older API calls for better compatibility
     shout_set_format(shout, SHOUT_FORMAT_MP3);
+    
     shout_set_protocol(shout, SHOUT_PROTOCOL_HTTP);
+    
+    // Set station name using older API call
+    shout_set_name(shout, g_config.icecast_station_title.c_str());
     
     // Use blocking mode for initial connection
     shout_set_nonblocking(shout, 0);
@@ -772,6 +867,9 @@ int main(int argc, char* argv[]) {
     if (err == SHOUTERR_SUCCESS) {
         printf("Connected to Icecast server\n");
         icecast_connected = true;
+        
+        // Set initial metadata
+        last_metadata_update = std::chrono::steady_clock::now();
     } else {
         std::cerr << "Error connecting to Icecast: " << shout_get_error(shout) << std::endl;
         std::cerr << "Will attempt to reconnect in the streaming thread\n";

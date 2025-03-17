@@ -25,6 +25,7 @@ hold_time = 500    ; in milliseconds, how long to keep squelch open after signal
 host = server.com
 port = 8000
 mount = /rtl-fm-stream.mp3
+station_title=station-example
 password = your_streamer_password
 user = source
 protocol = http    ; only http is supported for now

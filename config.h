@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iostream>
 #include <cstdint>
+#include <stdexcept>
+
 struct Config {
     // RTL-SDR settings
     int sample_rate;
@@ -40,6 +42,9 @@ struct Config {
     int reconnect_attempts;
     int reconnect_delay_ms;
 
+    // New station title setting
+    std::string icecast_station_title;
+
     // Constructor with default values
     Config() :
         sample_rate(1024000),
@@ -64,16 +69,18 @@ struct Config {
         icecast_protocol("http"),
         icecast_format("mp3"),
         reconnect_attempts(5),
-        reconnect_delay_ms(2000)
+        reconnect_delay_ms(2000),
+        icecast_station_title("RTL-SDR Radio")
     {}
 };
 
-class ConfigParser {
-public:
-    static Config parse_config(const std::string& filename);
-
-private:
-    static std::map<std::string, std::map<std::string, std::string>> parse_ini(const std::string& filename);
-    static std::string trim(const std::string& str);
-    static std::string remove_comment(const std::string& str);
-}; 
+namespace ConfigParser {
+    // Helper function declarations
+    std::string trim(const std::string& str);
+    std::string remove_comment(const std::string& str);
+    std::map<std::string, std::map<std::string, std::string>> parse_ini(const std::string& filename);
+    
+    // Only declare the function, don't define it
+    Config parse_config(const std::string &filename);
+    
+} 
