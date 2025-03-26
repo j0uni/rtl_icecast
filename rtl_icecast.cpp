@@ -60,7 +60,7 @@ std::chrono::steady_clock::time_point last_stats_time;
 msresamp_rrrf resampler;  // Make resampler global so callback can access it
 std::complex<float> prev_sample(1.0f, 0.0f);  // Make prev_sample global for the callback
 iirfilt_crcf filter;  // FM channel filter
-MODULATION_MODE current_mode = MODULATION_MODE::WFM_MODE; // Default to wide FM
+ModulationMode current_mode = ModulationMode::WFM_MODE; // Default to wide FM
 
 // Structure to hold MP3 data
 struct MP3Chunk {
@@ -133,16 +133,16 @@ public:
         deemph_alpha = 1.0f - expf(-1.0f / (time_constant * sample_rate));
     }
     
-    void setMode(MODULATION_MODE mode, float sampleRate) {
-        deviation = (mode == MODULATION_MODE::WFM_MODE) ? WFM_DEVIATION : NFM_DEVIATION;
+    void setMode(ModulationMode mode, float sampleRate) {
+        deviation = (mode == ModulationMode::WFM_MODE) ? WFM_DEVIATION : NFM_DEVIATION;
         sample_rate = sampleRate;
         
         // Update de-emphasis filter for new sample rate
-        float time_constant = (mode == MODULATION_MODE::WFM_MODE) ? 75e-6f : 50e-6f; // 75µs for WFM, 50µs for NFM
+        float time_constant = (mode == ModulationMode::WFM_MODE) ? 75e-6f : 50e-6f; // 75µs for WFM, 50µs for NFM
         deemph_alpha = 1.0f - expf(-1.0f / (time_constant * sample_rate));
         
         // Use de-emphasis only for wide FM
-        use_deemphasis = (mode == MODULATION_MODE::NFM_MODE);
+        use_deemphasis = (mode == ModulationMode::NFM_MODE);
 
     }
     
@@ -199,13 +199,13 @@ float fm_demod(std::complex<float> prev, std::complex<float> curr) {
     return g_demodulator.demodulate(prev, curr);
 }
 
-// Initialize FM mode
-void init_fm_mode(MODULATION_MODE mode) {
+// Initialize modulation mode
+void init_modulation(ModulationMode mode) {
     current_mode = mode;
     
     float cutoff_freq;
-    if (mode == MODULATION_MODE::WFM_MODE) cutoff_freq = WFM_FILTER_BW;
-    else if (mode == MODULATION_MODE::NFM_MODE) cutoff_freq = NFM_FILTER_BW;
+    if (mode == ModulationMode::WFM_MODE) cutoff_freq = WFM_FILTER_BW;
+    else if (mode == ModulationMode::NFM_MODE) cutoff_freq = NFM_FILTER_BW;
     else cutoff_freq = AM_FILTER_BW;
 
     float filter_bw = cutoff_freq / (float)g_config.sample_rate;
@@ -225,14 +225,19 @@ void init_fm_mode(MODULATION_MODE mode) {
         60.0f
     );
     
-    // Initialize the FM demodulator with the new mode
-    g_demodulator.setMode(mode, g_config.sample_rate);
-    g_demodulator.reset();
-    
-    printf("Initialized %s FM mode with %d Hz deviation and %.1f kHz filter\n",
-           (mode == MODULATION_MODE::WFM_MODE) ? "Wide" : "Narrow",
-           (mode == MODULATION_MODE::WFM_MODE) ? WFM_DEVIATION : NFM_DEVIATION,
-           cutoff_freq / 1000.0f);
+    if ((mode == ModulationMode::NFM_MODE) || (mode == ModulationMode::WFM_MODE)) {
+        // Initialize the FM demodulator with the new mode
+        g_demodulator.setMode(mode, g_config.sample_rate);
+        g_demodulator.reset();
+        
+        printf("Initialized %s FM mode with %d Hz deviation and %.1f kHz filter\n",
+            (mode == ModulationMode::WFM_MODE) ? "Wide" : "Narrow",
+            (mode == ModulationMode::WFM_MODE) ? WFM_DEVIATION : NFM_DEVIATION,
+            cutoff_freq / 1000.0f);
+    }
+    if (mode == ModulationMode::AM_MODE) {
+        printf("Initialized AM mode with %.1f kHz filter\n", cutoff_freq / 1000.0f);
+    }
 }
 
 // Initialize low-cut filter
@@ -370,7 +375,7 @@ void rtl_callback(unsigned char *buf, uint32_t len, void *) {
     // Process IQ samples
     std::vector<float> demod_buffer(len / 2);
     for (uint32_t i = 0; i < len/2; i++) {
-        if (current_mode == MODULATION_MODE::AM_MODE) demod_buffer[i] = std::abs(filtered_samples[i]);
+        if (current_mode == ModulationMode::AM_MODE) demod_buffer[i] = std::abs(filtered_samples[i]);
         else demod_buffer[i] = fm_demod(prev_sample, filtered_samples[i]);
         prev_sample = filtered_samples[i];
     }
@@ -432,8 +437,8 @@ void update_icecast_metadata(shout_t* shout, double freq_mhz, float signal_db) {
     
     // Format mode
     std::string mode;
-    if (current_mode == MODULATION_MODE::AM_MODE) mode = "AM";
-    else if (current_mode == MODULATION_MODE::NFM_MODE) mode = "NFM";
+    if (current_mode == ModulationMode::AM_MODE) mode = "AM";
+    else if (current_mode == ModulationMode::NFM_MODE) mode = "NFM";
     else mode = "WFM";
     
     // Create complete title string with mode
@@ -642,9 +647,9 @@ void icecast_thread_function(shout_t* shout) {
     printf("Icecast streaming thread ending\n");
 }
 
-std::string get_mode_text(MODULATION_MODE mode) {
-    if (mode == MODULATION_MODE::AM_MODE) return "AM";
-    else if (mode == MODULATION_MODE::NFM_MODE) return "NFM";
+std::string get_mode_text(ModulationMode mode) {
+    if (mode == ModulationMode::AM_MODE) return "AM";
+    else if (mode == ModulationMode::NFM_MODE) return "NFM";
     else return "WFM";
 }
 
@@ -814,8 +819,8 @@ int main(int argc, char* argv[]) {
     
     last_stats_time = std::chrono::steady_clock::now();
     
-    // Initialize FM mode
-    init_fm_mode(g_config.mode);
+    // Initialize modulation
+    init_modulation(g_config.mode);
     
     // Initialize low-cut filter
     init_lowcut_filter();

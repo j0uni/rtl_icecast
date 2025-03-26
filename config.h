@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <stdexcept>
 
-enum class MODULATION_MODE {
+enum class ModulationMode {
     AM_MODE,
     NFM_MODE,
     WFM_MODE
@@ -20,7 +20,7 @@ struct Config {
     double center_freq;  // in MHz
     int gain_mode;
     bool wide_fm;
-    MODULATION_MODE mode;
+    ModulationMode mode;
 
     // Audio settings
     int audio_rate;
