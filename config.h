@@ -8,12 +8,19 @@
 #include <cstdint>
 #include <stdexcept>
 
+enum class MODULATION_MODE {
+    AM_MODE,
+    NFM_MODE,
+    WFM_MODE
+};
+
 struct Config {
     // RTL-SDR settings
     int sample_rate;
     double center_freq;  // in MHz
     int gain_mode;
     bool wide_fm;
+    MODULATION_MODE mode;
 
     // Audio settings
     int audio_rate;
