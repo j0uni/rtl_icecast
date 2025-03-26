@@ -78,6 +78,9 @@ Config parse_config(const std::string &filename) {
             std::string mode = section["fm_mode"];
             std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
             config.wide_fm = (mode == "wide");
+            if (mode == "am") config.mode = MODULATION_MODE::AM_MODE;
+            else if (mode == "narrow") config.mode = MODULATION_MODE::NFM_MODE;
+            else config.mode = MODULATION_MODE::WFM_MODE;
         }
     }
     

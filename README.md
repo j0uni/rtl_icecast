@@ -182,6 +182,7 @@ You can access the Icecast web interface at http://localhost:8000
 ## License
 
 (C) Jouni OH3CUF 2025
+(C) Jarmo OH3BSG 2025
 
 This project is licensed under the MIT License - see the LICENSE file for details. 
 
