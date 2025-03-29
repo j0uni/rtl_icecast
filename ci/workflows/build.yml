@@ -14,15 +14,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
+    - name: Debug files
+      run: |
+        echo "=== Root directory ==="
+        ls -la
+        echo "=== CI directory ==="
+        ls -la ci/
+        echo "=== File details ==="
+        file Makefile config.cpp config.h rtl_icecast.cpp ci/build_docker.sh || true
+    
     - name: Copy source files
       run: |
-        cd ${{ github.workspace }}
         # Copy source files to ci directory
-        cp build_docker.sh Makefile config.cpp config.h rtl_icecast.cpp ci/
+        cp Makefile config.cpp config.h rtl_icecast.cpp ci/
         # Make build script executable
         chmod +x ci/build_docker.sh
-        echo "Files in ci directory:"
-        ls -l ci/
+        echo "=== Files in ci directory after copy ==="
+        ls -la ci/
     
     - name: Build Docker image
       run: |
