@@ -14,23 +14,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Prepare build context
+    - name: Debug workspace
       run: |
-        cd ${{ github.workspace }}
-        # Create staging directory
-        mkdir -p ci/build
-        # Copy files to staging
-        cp Makefile config.cpp config.h rtl_icecast.cpp ci/build/
-        # Debug output
-        echo "=== Source files ==="
-        ls -l Makefile config.cpp config.h rtl_icecast.cpp
-        echo "=== Staging directory contents ==="
-        ls -l ci/build/
-        echo "=== First line of each file ==="
-        for f in ci/build/*; do
-          echo "=== $f ==="
-          head -n 1 "$f"
-        done
+        echo "Current directory: $PWD"
+        echo "GitHub workspace: ${{ github.workspace }}"
+        echo "Source files:"
+        ls -l ${{ github.workspace }}/*.{cpp,h,Makefile}
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -38,7 +27,7 @@ jobs:
     - name: Build and verify compilation
       uses: docker/build-push-action@v4
       with:
-        context: ${{ github.workspace }}/ci/build
+        context: ${{ github.workspace }}
         file: ${{ github.workspace }}/ci/Dockerfile
         push: false
         load: true
