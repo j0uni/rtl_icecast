@@ -11,19 +11,39 @@ RUN apt-get update && apt-get install -y \
     libfftw3-dev \
     libliquid-dev \
     wget \
+    tree \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /build
 
-# Copy source files from parent directory
-COPY Makefile config.cpp config.h rtl_icecast.cpp ./
-
-# List files to debug
+# Debug: Show current directory
+RUN pwd && echo "Current directory contents before copy:"
 RUN ls -la
 
+# Debug: Show root directory
+RUN echo "Root directory contents:"
+RUN ls -la /
+
+# Copy source files
+COPY Makefile config.cpp config.h rtl_icecast.cpp ./
+
+# Debug: Show files after copy
+RUN echo "Files after copy:"
+RUN ls -la
+RUN echo "File contents and permissions:"
+RUN file * || true
+RUN stat * || true
+
+# Debug: Show environment
+RUN echo "Environment:"
+RUN env
+
 # Build the application
-RUN make
+RUN echo "Starting build..." && make
 
 # Verify the binary exists and is executable
-RUN test -x rtl_icecast
+RUN echo "Checking binary..." && \
+    ls -l rtl_icecast && \
+    file rtl_icecast && \
+    test -x rtl_icecast
