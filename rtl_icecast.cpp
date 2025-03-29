@@ -16,8 +16,6 @@
 #include <fcntl.h>
 #include "config.h"
 
-break it!
-
 // Global configuration
 Config g_config;
 
