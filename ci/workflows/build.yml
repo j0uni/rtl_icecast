@@ -18,7 +18,7 @@ jobs:
       run: |
         cd ${{ github.workspace }}
         # Copy source files to ci directory
-        cp Makefile config.cpp config.h rtl_icecast.cpp ci/
+        cp build_docker.sh Makefile config.cpp config.h rtl_icecast.cpp ci/
         # Make build script executable
         chmod +x ci/build_docker.sh
         echo "Files in ci directory:"
