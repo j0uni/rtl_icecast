@@ -1,0 +1,19 @@
+name: CI Compile
+
+on:
+  push:  # Triggers on all commits to any branch
+    branches:
+      - '**'  # Matches all branches
+
+jobs:
+  compile:
+    runs-on: self-hosted  # Uses your self-hosted GitHub Actions runner
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Compile Task
+        run: |
+          cd ci
+          ./compile.sh  # Adjust script name if needed
+
