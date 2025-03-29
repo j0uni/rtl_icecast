@@ -19,12 +19,15 @@ jobs:
           fetch-depth: 0  # Ensures the full repo history is available
 
       - name: Verify files
-        run: ls -laR
+        run: |
+          echo "Current working directory: $PWD"
+          echo "GitHub workspace: ${{ github.workspace }}"
+          ls -laR
 
       - name: Build Docker image
         run: |
-          docker build -t my-image:latest -f ci/Dockerfile .
+          docker build -t rtl-icecast:latest -f ci/Dockerfile .
 
       - name: Run Docker container
         run: |
-          docker run -d --name my-container my-image:latest
+          docker run -d --name rtl-icecast rtl-icecast:latest
