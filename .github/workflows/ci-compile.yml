@@ -1,19 +1,21 @@
 name: CI Compile
 
 on:
-  push:  # Triggers on all commits to any branch
+  push:
     branches:
-      - '**'  # Matches all branches
+      - '**'
 
 jobs:
-  compile:
-    runs-on: self-hosted  # Uses your self-hosted GitHub Actions runner
+  build:
+    runs-on: ubuntu-latest  # Use GitHub-hosted runner for Docker
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Run Compile Task
+      - name: Set up Docker Build
         run: |
           cd ci
-          ./compile.sh  # Adjust script name if needed
+          docker build -t my-image .
+          docker run my-image
 
