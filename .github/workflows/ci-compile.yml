@@ -45,6 +45,10 @@ jobs:
         run: |
           docker build -t rtl-icecast:latest -f ci/Dockerfile .
 
+      - name: Clean up existing container
+        run: |
+          docker rm -f rtl-icecast || true
+
       - name: Run Docker container
         run: |
           docker run -d --name rtl-icecast rtl-icecast:latest
