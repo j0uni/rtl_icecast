@@ -21,9 +21,9 @@ jobs:
       - name: Verify files
         run: ls -R
 
-      - name: Build Docker image
-        run: |
-          docker build -t my-image:latest ./ci
+- name: Build Docker image
+  run: |
+    docker build -f ci/Dockerfile -t my-image:latest .
 
       - name: Run Docker container
         run: |
