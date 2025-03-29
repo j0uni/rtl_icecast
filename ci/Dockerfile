@@ -24,8 +24,8 @@ RUN echo "=== Initial directory state ===" && \
     echo "Current directory:" && \
     ls -la
 
-# Copy source files from parent directory
-COPY ../Makefile ../config.cpp ../config.h ../rtl_icecast.cpp ./
+# Copy source files
+COPY Makefile config.cpp config.h rtl_icecast.cpp ./
 
 # Debug: Show files after copy
 RUN echo "=== Files after copy ===" && \

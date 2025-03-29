@@ -14,25 +14,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Debug workspace
+    - name: Copy source files
       run: |
-        echo "Current directory: $PWD"
-        echo "GitHub workspace: ${{ github.workspace }}"
-        echo "Source files:"
-        ls -l ${{ github.workspace }}/*.{cpp,h,Makefile}
+        cd ${{ github.workspace }}
+        # Copy source files to ci directory
+        cp Makefile config.cpp config.h rtl_icecast.cpp ci/
+        echo "Files copied to ci directory:"
+        ls -l ci/
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    
-    - name: Build and verify compilation
-      uses: docker/build-push-action@v4
-      with:
-        context: ${{ github.workspace }}
-        file: ${{ github.workspace }}/ci/Dockerfile
-        push: false
-        load: true
-        tags: rtl-icecast:test
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        no-cache: true
-        progress: plain
+    - name: Build Docker image
+      run: |
+        cd ${{ github.workspace }}/ci
+        docker build -t rtl-icecast:test .
