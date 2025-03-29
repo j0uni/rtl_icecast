@@ -1,0 +1,8 @@
+on:
+  push:
+    branches:
+      - '**'  # This pattern matches all branches
+  pull_request:
+    branches:
+      - '**'
+

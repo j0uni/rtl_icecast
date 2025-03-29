@@ -1,0 +1,21 @@
+name: CI Compile
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use GitHub-hosted runner for Docker
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Build
+        run: |
+          cd ci
+          docker build -t my-image .
+          docker run my-image
+
