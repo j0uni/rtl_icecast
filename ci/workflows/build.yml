@@ -1,38 +1,25 @@
-name: Build Check
+name: Docker Build
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: self-hosted
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Debug files
-      run: |
-        echo "=== Root directory ==="
-        ls -la
-        echo "=== CI directory ==="
-        ls -la ci/
-        echo "=== File details ==="
-        file Makefile config.cpp config.h rtl_icecast.cpp ci/build_docker.sh || true
-    
-    - name: Copy source files
-      run: |
-        # Copy source files to ci directory
-        cp Makefile config.cpp config.h rtl_icecast.cpp ci/
-        # Make build script executable
-        chmod +x ci/build_docker.sh
-        echo "=== Files in ci directory after copy ==="
-        ls -la ci/
-    
-    - name: Build Docker image
-      run: |
-        # Build with progress and no cache
-        DOCKER_BUILDKIT=1 docker build -f ci/Dockerfile --progress=plain --no-cache -t rtl-icecast:test .
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t my-image:latest ./ci
+
+      - name: Run Docker container
+        run: |
+          docker run -d --name my-container my-image:latest
