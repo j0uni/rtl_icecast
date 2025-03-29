@@ -18,10 +18,18 @@ jobs:
       run: |
         echo "Current directory: $PWD"
         echo "GitHub workspace: ${{ github.workspace }}"
-        echo "Directory contents:"
-        ls -la
-        echo "Tree structure:"
-        tree || true
+        echo "Directory contents of workspace:"
+        ls -la ${{ github.workspace }}
+        echo "Directory contents of ci:"
+        ls -la ${{ github.workspace }}/ci
+        echo "Parent directory:"
+        ls -la ..
+        echo "Full tree from workspace:"
+        cd ${{ github.workspace }} && tree
+        echo "Docker version:"
+        docker version
+        echo "Docker build context test:"
+        cd ${{ github.workspace }} && tar -czf - . | tar -tvf -
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -29,8 +37,8 @@ jobs:
     - name: Build and verify compilation
       uses: docker/build-push-action@v4
       with:
-        context: .
-        file: ./ci/Dockerfile
+        context: ${{ github.workspace }}
+        file: ${{ github.workspace }}/ci/Dockerfile
         push: false
         load: true
         tags: rtl-icecast:test
