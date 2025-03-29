@@ -9,20 +9,9 @@ RUN apt-get update && apt-get install -y \
     libshout3-dev \
     libmp3lame-dev \
     libfftw3-dev \
+    libliquid-dev \
     wget \
     && rm -rf /var/lib/apt/lists/*
-
-# Build and install liquid-dsp from source
-RUN cd /tmp && \
-    git clone https://github.com/jgaeddert/liquid-dsp.git && \
-    cd liquid-dsp && \
-    ./bootstrap.sh && \
-    ./configure && \
-    make && \
-    make install && \
-    ldconfig && \
-    cd / && \
-    rm -rf /tmp/liquid-dsp
 
 # Set working directory
 WORKDIR /app
