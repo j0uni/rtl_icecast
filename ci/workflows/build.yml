@@ -20,9 +20,26 @@ jobs:
 
       - name: Verify files
         run: |
+          echo "===================="
+          echo "=== Environment ==="
+          echo "===================="
           echo "Current working directory: $PWD"
           echo "GitHub workspace: ${{ github.workspace }}"
-          ls -laR
+          echo ""
+          echo "======================"
+          echo "=== Root contents ==="
+          echo "======================"
+          ls -la
+          echo ""
+          echo "===================="
+          echo "=== CI contents ==="
+          echo "===================="
+          ls -la ci/
+          echo ""
+          echo "======================="
+          echo "=== Source files ==="
+          echo "======================="
+          file Makefile config.cpp config.h rtl_icecast.cpp || echo "Source files not found"
 
       - name: Build Docker image
         run: |

@@ -1,21 +1,50 @@
-name: CI Compile
+name: Docker Build
 
 on:
   push:
     branches:
-      - '**'
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Use GitHub-hosted runner for Docker
+    runs-on: self-hosted
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures the full repo history is available
 
-      - name: Set up Docker Build
+      - name: Verify files
         run: |
-          cd ci
-          docker build -t my-image .
-          docker run my-image
+          echo "===================="
+          echo "=== Environment ==="
+          echo "===================="
+          echo "Current working directory: $PWD"
+          echo "GitHub workspace: ${{ github.workspace }}"
+          echo ""
+          echo "======================"
+          echo "=== Root contents ==="
+          echo "======================"
+          ls -la
+          echo ""
+          echo "===================="
+          echo "=== CI contents ==="
+          echo "===================="
+          ls -la ci/
+          echo ""
+          echo "======================="
+          echo "=== Source files ==="
+          echo "======================="
+          file Makefile config.cpp config.h rtl_icecast.cpp || echo "Source files not found"
 
+      - name: Build Docker image
+        run: |
+          docker build -t rtl-icecast:latest -f ci/Dockerfile .
+
+      - name: Run Docker container
+        run: |
+          docker run -d --name rtl-icecast rtl-icecast:latest
