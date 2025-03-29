@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /build
 
 # Copy source files from parent directory
-COPY ../ ./
+COPY Makefile config.cpp config.h rtl_icecast.cpp ./
 
 # List files to debug
 RUN ls -la
