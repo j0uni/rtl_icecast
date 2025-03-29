@@ -24,40 +24,11 @@ RUN echo "=== Initial directory state ===" && \
     echo "Current directory:" && \
     ls -la
 
-# Copy source files
-COPY Makefile config.cpp config.h rtl_icecast.cpp ./
+# Copy source files and build script
+COPY . .
 
-# Debug: Show files after copy
-RUN echo "=== Files after copy ===" && \
-    echo "Current directory:" && \
-    ls -la && \
-    echo "File details:" && \
-    file * && \
-    echo "File contents:" && \
-    for f in Makefile config.cpp config.h rtl_icecast.cpp; do \
-        echo "=== First line of $f ==="; \
-        if [ -f "$f" ]; then \
-            head -n 1 "$f" || echo "Failed to read $f"; \
-        else \
-            echo "File $f not found"; \
-        fi \
-    done
+# Make build script executable
+RUN chmod +x build_docker.sh
 
-# Build the application
-RUN echo "=== Starting build ===" && \
-    if [ -f Makefile ]; then \
-        echo "Makefile exists:" && \
-        cat Makefile && \
-        make; \
-    else \
-        echo "Makefile not found in:" && \
-        pwd && \
-        ls -la; \
-        exit 1; \
-    fi
-
-# Verify the binary exists and is executable
-RUN echo "=== Checking binary ===" && \
-    ls -l rtl_icecast && \
-    file rtl_icecast && \
-    test -x rtl_icecast
+# Run the build script
+RUN ./build_docker.sh

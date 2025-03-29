@@ -19,10 +19,13 @@ jobs:
         cd ${{ github.workspace }}
         # Copy source files to ci directory
         cp Makefile config.cpp config.h rtl_icecast.cpp ci/
-        echo "Files copied to ci directory:"
+        # Make build script executable
+        chmod +x ci/build_docker.sh
+        echo "Files in ci directory:"
         ls -l ci/
     
     - name: Build Docker image
       run: |
         cd ${{ github.workspace }}/ci
-        docker build -t rtl-icecast:test .
+        # Build with progress and no cache
+        DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache -t rtl-icecast:test .
