@@ -27,6 +27,12 @@ RUN echo "=== Initial directory state ===" && \
 # Copy source files and build script
 COPY . .
 
+# Debug: Show initial state
+RUN echo "=== Source directory state ===" && \
+    pwd && \
+    echo "Current directory:" && \
+    ls -la
+
 # Make build script executable
 RUN chmod +x ci/build_docker.sh
 
