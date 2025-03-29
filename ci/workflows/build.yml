@@ -12,8 +12,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
-      with:
-        path: rtl_icecast
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -21,8 +19,8 @@ jobs:
     - name: Build and verify compilation
       uses: docker/build-push-action@v4
       with:
-        context: rtl_icecast
-        file: rtl_icecast/ci/Dockerfile
+        context: ${{ github.workspace }}
+        file: ${{ github.workspace }}/ci/Dockerfile
         push: false
         load: true
         tags: rtl-icecast:test
