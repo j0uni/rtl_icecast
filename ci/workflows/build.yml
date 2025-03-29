@@ -19,11 +19,11 @@ jobs:
           fetch-depth: 0  # Ensures the full repo history is available
 
       - name: Verify files
-        run: ls -R
+        run: ls -laR
 
-- name: Build Docker image
-  run: |
-    docker build -f ci/Dockerfile -t my-image:latest .
+      - name: Build Docker image
+        run: |
+          docker build -t my-image:latest -f ci/Dockerfile .
 
       - name: Run Docker container
         run: |
