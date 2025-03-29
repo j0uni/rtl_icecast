@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <fcntl.h>
 #include "config.h"
+#include "scanner.h"
 
 // Global configuration
 Config g_config;
@@ -808,6 +809,12 @@ int main(int argc, char* argv[]) {
     } catch (const std::exception& e) {
         std::cerr << "Error loading config: " << e.what() << std::endl;
         return 1;
+    }
+
+    printf("scanlist size %ld\n", g_config.scanlist.size());
+    for (uint8_t i = 0; i < g_config.scanlist.size(); i++ ) {
+        printf("Taajuus %f,  kanavanimi %s\n", g_config.scanlist[i].frequency, g_config.scanlist[i].ch_name.c_str());
+        //printf("Taajuus %f \n", g_config.scanlist[i]);
     }
 
     // Initialize squelch state

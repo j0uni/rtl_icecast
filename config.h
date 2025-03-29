@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstdint>
 #include <stdexcept>
+#include <vector>
+#include "scanner.h"
 
 enum class ModulationMode {
     AM_MODE,
@@ -21,6 +23,12 @@ struct Config {
     int gain_mode;
     bool wide_fm;
     ModulationMode mode;
+
+    // Scanner settings
+    bool scan;
+
+    // Scanlist
+    std::vector<ScanList> scanlist;
 
     // Audio settings
     int audio_rate;
