@@ -17,33 +17,50 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /build
 
-# Debug: Show current directory
-RUN pwd && echo "Current directory contents before copy:"
-RUN ls -la .
-
-# Debug: Show context directory
-RUN echo "Context directory contents:"
-RUN ls -la /build
+# Debug: Show initial state
+RUN echo "=== Initial directory state ===" && \
+    pwd && \
+    echo "Current directory:" && \
+    ls -la . && \
+    echo "Parent directory:" && \
+    ls -la .. && \
+    echo "Root directory:" && \
+    ls -la /
 
 # Copy source files
-COPY . .
+COPY Makefile config.cpp config.h rtl_icecast.cpp ./
 
 # Debug: Show files after copy
-RUN echo "Files after copy:"
-RUN ls -la
-RUN echo "File contents and permissions:"
-RUN file * || true
-RUN stat * || true
-
-# Debug: Show environment
-RUN echo "Environment:"
-RUN env
+RUN echo "=== Files after copy ===" && \
+    echo "Current directory:" && \
+    ls -la . && \
+    echo "File details:" && \
+    file * && \
+    echo "File contents:" && \
+    for f in Makefile config.cpp config.h rtl_icecast.cpp; do \
+        echo "=== First line of $f ==="; \
+        if [ -f "$f" ]; then \
+            head -n 1 "$f" || echo "Failed to read $f"; \
+        else \
+            echo "File $f not found"; \
+        fi \
+    done
 
 # Build the application
-RUN echo "Starting build..." && make
+RUN echo "=== Starting build ===" && \
+    if [ -f Makefile ]; then \
+        echo "Makefile exists:" && \
+        cat Makefile && \
+        make; \
+    else \
+        echo "Makefile not found in:" && \
+        pwd && \
+        ls -la; \
+        exit 1; \
+    fi
 
 # Verify the binary exists and is executable
-RUN echo "Checking binary..." && \
+RUN echo "=== Checking binary ===" && \
     ls -l rtl_icecast && \
     file rtl_icecast && \
     test -x rtl_icecast

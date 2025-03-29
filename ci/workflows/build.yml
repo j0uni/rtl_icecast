@@ -18,25 +18,23 @@ jobs:
       run: |
         echo "Current directory: $PWD"
         echo "GitHub workspace: ${{ github.workspace }}"
-        echo "Directory contents of workspace:"
-        ls -la ${{ github.workspace }}
-        echo "Directory contents of ci:"
-        ls -la ${{ github.workspace }}/ci
-        echo "Parent directory:"
-        ls -la ..
-        echo "Full tree from workspace:"
-        cd ${{ github.workspace }} && tree
-        echo "Docker version:"
-        docker version
+        echo "Source files in workspace:"
+        find ${{ github.workspace }} -type f -name "*.cpp" -o -name "*.h" -o -name "Makefile"
+        echo "CI directory contents before copy:"
+        ls -la ${{ github.workspace }}/ci/
     
     - name: Copy source files to ci directory
       run: |
-        cp ${{ github.workspace }}/Makefile ${{ github.workspace }}/ci/
-        cp ${{ github.workspace }}/config.cpp ${{ github.workspace }}/ci/
-        cp ${{ github.workspace }}/config.h ${{ github.workspace }}/ci/
-        cp ${{ github.workspace }}/rtl_icecast.cpp ${{ github.workspace }}/ci/
-        echo "Files copied to ci directory:"
-        ls -la ${{ github.workspace }}/ci/
+        cd ${{ github.workspace }}
+        echo "Copying files from $(pwd) to ci/"
+        cp ./Makefile ./config.cpp ./config.h ./rtl_icecast.cpp ./ci/
+        echo "CI directory contents after copy:"
+        ls -la ./ci/
+        echo "Verifying file contents:"
+        for f in ci/Makefile ci/config.cpp ci/config.h ci/rtl_icecast.cpp; do
+          echo "=== $f ==="
+          head -n 1 "$f" || echo "Failed to read $f"
+        done
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
