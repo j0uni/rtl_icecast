@@ -23,8 +23,8 @@ The workflow runs on:
 To test the build locally using Docker:
 
 ```bash
-cd ci
-docker build -t rtl-icecast:test -f Dockerfile ..
+# From the project root directory:
+docker build -t rtl-icecast:test -f ci/Dockerfile .
 ```
 
 ## Notes
