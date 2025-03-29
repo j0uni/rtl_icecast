@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     libliquid-dev \
     wget \
     tree \
-    && rm -rf /var/lib/apt/lists/*
+    file && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /build
@@ -30,8 +31,6 @@ COPY . /app
 RUN echo "=== Files after copy ===" && \
     echo "Current directory:" && \
     ls -la /app && \
-    echo "File details:" && \
-    file /app/* && \
     echo "File contents:" && \
     for f in /app/Makefile /app/config.cpp /app/config.h /app/rtl_icecast.cpp; do \
         echo "=== First line of $f ==="; \
