@@ -34,7 +34,7 @@ RUN echo "=== Source directory state ===" && \
     ls -la
 
 # Make build script executable
-RUN chmod +x ci/build_docker.sh
+RUN chmod +x build_docker.sh
 
 # Run the build script
-RUN ci/build_docker.sh
+RUN build_docker.sh
