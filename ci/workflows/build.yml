@@ -26,6 +26,5 @@ jobs:
     
     - name: Build Docker image
       run: |
-        cd ${{ github.workspace }}/ci
         # Build with progress and no cache
-        DOCKER_BUILDKIT=1 docker build --progress=plain --no-cache -t rtl-icecast:test .
+        DOCKER_BUILDKIT=1 docker build -f ci/Dockerfile --progress=plain --no-cache -t rtl-icecast:test .
