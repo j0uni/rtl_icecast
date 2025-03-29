@@ -15,6 +15,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures the full repo history is available
+
+      - name: Verify files
+        run: ls -R
 
       - name: Build Docker image
         run: |
