@@ -14,10 +14,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /app
+WORKDIR /build
 
 # Copy source files
-COPY . .
+COPY . /build/
+
+# List files to debug
+RUN ls -la
 
 # Build the application
 RUN make

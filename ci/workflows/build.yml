@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps:
     - uses: actions/checkout@v3
@@ -19,7 +19,7 @@ jobs:
     - name: Build and verify compilation
       uses: docker/build-push-action@v4
       with:
-        context: ..
+        context: .
         file: ci/Dockerfile
         push: false
         load: true

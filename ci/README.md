@@ -20,11 +20,14 @@ The workflow runs on:
 
 ## Local Testing
 
-To test the build locally using Docker:
+To test the build locally using Docker, run from the project root directory:
 
 ```bash
-# From the project root directory:
+# Build the Docker image
 docker build -t rtl-icecast:test -f ci/Dockerfile .
+
+# You can also verify the build process with debug output:
+docker build -t rtl-icecast:test -f ci/Dockerfile . --progress=plain
 ```
 
 ## Notes
@@ -32,3 +35,4 @@ docker build -t rtl-icecast:test -f ci/Dockerfile .
 - The CI setup only verifies that the application compiles successfully
 - Build artifacts are cached using GitHub's cache to speed up subsequent builds
 - The build environment uses Debian Bullseye as the base image
+- The build process uses system-provided libliquid-dev package
