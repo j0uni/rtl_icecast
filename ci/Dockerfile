@@ -19,26 +19,14 @@ WORKDIR /build
 
 # Debug: Show current directory
 RUN pwd && echo "Current directory contents before copy:"
-RUN ls -la
+RUN ls -la .
 
-# Debug: Show root directory
-RUN echo "Root directory contents:"
-RUN ls -la /
+# Debug: Show context directory
+RUN echo "Context directory contents:"
+RUN ls -la /build
 
-# Debug: Show build context
-RUN echo "Attempting to list possible source files:"
-RUN find / -name "Makefile" -o -name "config.cpp" -o -name "config.h" -o -name "rtl_icecast.cpp" 2>/dev/null || true
-
-# Copy source files one by one with debug output
-RUN echo "Starting file copy process..."
-COPY Makefile ./Makefile
-RUN echo "Copied Makefile:" && ls -l Makefile
-COPY config.cpp ./config.cpp
-RUN echo "Copied config.cpp:" && ls -l config.cpp
-COPY config.h ./config.h
-RUN echo "Copied config.h:" && ls -l config.h
-COPY rtl_icecast.cpp ./rtl_icecast.cpp
-RUN echo "Copied rtl_icecast.cpp:" && ls -l rtl_icecast.cpp
+# Copy source files
+COPY . .
 
 # Debug: Show files after copy
 RUN echo "Files after copy:"

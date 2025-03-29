@@ -28,8 +28,15 @@ jobs:
         cd ${{ github.workspace }} && tree
         echo "Docker version:"
         docker version
-        echo "Docker build context test:"
-        cd ${{ github.workspace }} && tar -czf - . | tar -tvf -
+    
+    - name: Copy source files to ci directory
+      run: |
+        cp ${{ github.workspace }}/Makefile ${{ github.workspace }}/ci/
+        cp ${{ github.workspace }}/config.cpp ${{ github.workspace }}/ci/
+        cp ${{ github.workspace }}/config.h ${{ github.workspace }}/ci/
+        cp ${{ github.workspace }}/rtl_icecast.cpp ${{ github.workspace }}/ci/
+        echo "Files copied to ci directory:"
+        ls -la ${{ github.workspace }}/ci/
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -37,7 +44,7 @@ jobs:
     - name: Build and verify compilation
       uses: docker/build-push-action@v4
       with:
-        context: ${{ github.workspace }}
+        context: ${{ github.workspace }}/ci
         file: ${{ github.workspace }}/ci/Dockerfile
         push: false
         load: true
