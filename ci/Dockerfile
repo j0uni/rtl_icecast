@@ -21,19 +21,15 @@ WORKDIR /build
 RUN echo "=== Initial directory state ===" && \
     pwd && \
     echo "Current directory:" && \
-    ls -la . && \
-    echo "Parent directory:" && \
-    ls -la .. && \
-    echo "Root directory:" && \
-    ls -la /
+    ls -la
 
-# Copy source files
-COPY Makefile config.cpp config.h rtl_icecast.cpp ./
+# Copy source files from context
+COPY . .
 
 # Debug: Show files after copy
 RUN echo "=== Files after copy ===" && \
     echo "Current directory:" && \
-    ls -la . && \
+    ls -la && \
     echo "File details:" && \
     file * && \
     echo "File contents:" && \

@@ -14,26 +14,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Debug workspace
-      run: |
-        echo "Current directory: $PWD"
-        echo "GitHub workspace: ${{ github.workspace }}"
-        echo "Source files in workspace:"
-        find ${{ github.workspace }} -type f -name "*.cpp" -o -name "*.h" -o -name "Makefile"
-        echo "CI directory contents before copy:"
-        ls -la ${{ github.workspace }}/ci/
-    
-    - name: Copy source files to ci directory
+    - name: Prepare build context
       run: |
         cd ${{ github.workspace }}
-        echo "Copying files from $(pwd) to ci/"
-        cp ./Makefile ./config.cpp ./config.h ./rtl_icecast.cpp ./ci/
-        echo "CI directory contents after copy:"
-        ls -la ./ci/
-        echo "Verifying file contents:"
-        for f in ci/Makefile ci/config.cpp ci/config.h ci/rtl_icecast.cpp; do
+        # Create staging directory
+        mkdir -p ci/build
+        # Copy files to staging
+        cp Makefile config.cpp config.h rtl_icecast.cpp ci/build/
+        # Debug output
+        echo "=== Source files ==="
+        ls -l Makefile config.cpp config.h rtl_icecast.cpp
+        echo "=== Staging directory contents ==="
+        ls -l ci/build/
+        echo "=== First line of each file ==="
+        for f in ci/build/*; do
           echo "=== $f ==="
-          head -n 1 "$f" || echo "Failed to read $f"
+          head -n 1 "$f"
         done
     
     - name: Set up Docker Buildx
@@ -42,7 +38,7 @@ jobs:
     - name: Build and verify compilation
       uses: docker/build-push-action@v4
       with:
-        context: ${{ github.workspace }}/ci
+        context: ${{ github.workspace }}/ci/build
         file: ${{ github.workspace }}/ci/Dockerfile
         push: false
         load: true
