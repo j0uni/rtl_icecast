@@ -2,19 +2,24 @@
 #define _SCANNER_H
 
 #include <string>
+#include <vector>
 #include <rtl-sdr.h>
 
 typedef struct {
-    float frequency;
+    uint32_t frequency;
     std::string modulation_mode;
     std::string ch_name;
 } ScanList;
 
 class Scanner {
     private:
+        //rtlsdr_dev_t *device;
+        std::vector<ScanList> channels;
+        uint8_t ch_index;
 
     public:
-        Scanner(rtlsdr_dev_t *dev, void *scanlist);
+        Scanner(rtlsdr_dev_t *dev, std::vector<ScanList> scanlist);
+        void NextCh(void);
 };
 
 #endif // _SCANNER_H

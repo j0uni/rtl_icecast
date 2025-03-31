@@ -201,14 +201,16 @@ Config parse_config(const std::string &filename) {
         }
     }
 
+#if 0
     // Parse scan section
     if (ini_data.count("scanner")) {
         auto& section = ini_data["scanner"];
 
         if (section.count("scan")) {
-            config.icecast_host = section["scan"];
+            config.scan = section["scan"];
         }
     }
+#endif // 0
 
     // Parse scanlist section
     if (ini_data.count("scanlist")) {
@@ -222,7 +224,7 @@ Config parse_config(const std::string &filename) {
             //printf("%s %s %s\n", result[0].c_str(), result[1].c_str(), result[2].c_str());
 
             ScanList Channel;
-            Channel.frequency = std::stof(result[0]);
+            Channel.frequency = std::stof(result[0]) * 1000000;
             Channel.modulation_mode = result[1];
             Channel.ch_name = result[2];
             config.scanlist.push_back(Channel);

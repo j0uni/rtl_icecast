@@ -29,6 +29,8 @@ enum class FMMode {
 // Global RTL-SDR device pointer
 rtlsdr_dev_t *g_dev = nullptr;
 
+Scanner *scanner; // = new Scanner(g_dev, g_config.scanlist);
+
 // Squelch state
 std::atomic<bool> squelch_active{false};
 std::chrono::steady_clock::time_point last_signal_above_threshold;
@@ -407,7 +409,7 @@ void rtl_callback(unsigned char *buf, uint32_t len, void *) {
             float sample = is_squelched ? 0.0f : resampled_buffer[i];
             audio_buffer.push_back(sample);
         }
-    }      
+    }
 }
 
 // Thread function for RTL-SDR reading
@@ -813,9 +815,11 @@ int main(int argc, char* argv[]) {
 
     printf("scanlist size %ld\n", g_config.scanlist.size());
     for (uint8_t i = 0; i < g_config.scanlist.size(); i++ ) {
-        printf("Taajuus %f,  kanavanimi %s\n", g_config.scanlist[i].frequency, g_config.scanlist[i].ch_name.c_str());
+        printf("Taajuus %d,  kanavanimi %s\n", g_config.scanlist[i].frequency, g_config.scanlist[i].ch_name.c_str());
         //printf("Taajuus %f \n", g_config.scanlist[i]);
     }
+
+    scanner = new Scanner(g_dev, g_config.scanlist);
 
     // Initialize squelch state
     last_signal_above_threshold = std::chrono::steady_clock::now();
@@ -862,6 +866,8 @@ int main(int argc, char* argv[]) {
     }
     rtlsdr_reset_buffer(g_dev);
     
+    //Scanner scanner(g_dev, g_config.scanlist);
+
     // Initialize resampler
     float resamp_ratio = (float)g_config.audio_rate / g_config.sample_rate * 1.00f;  
     resampler = msresamp_rrrf_create(resamp_ratio, 60.0f);
@@ -997,6 +1003,12 @@ int main(int argc, char* argv[]) {
             // Add a small sleep to prevent busy waiting
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+
+#if 1
+        if (squelch_active == true) {
+            scanner->NextCh();
+        }
+#endif // 0
     }
     
     // Cleanup

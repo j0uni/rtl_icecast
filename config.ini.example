@@ -32,3 +32,16 @@ protocol = http    ; only http is supported for now
 format = mp3
 reconnect_attempts = 5
 reconnect_delay_ms = 2000 
+
+[scanner]
+scan = true ; false
+step_delay = 100 ; ms
+
+[scanlist]
+ch0 = 127.100,AM,Sector G
+ch1 = 118.700,AM,EFTP TWR
+ch2 = 126.200,AM,EFTP Radar
+ch5 = 119.100,AM,EFHK a
+ch6 = 119.900,AM,EFHK b
+ch7 = 126.900,AM,Pietari
+ch8 = 132.325,AM,Sector M
