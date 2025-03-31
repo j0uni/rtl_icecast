@@ -2,7 +2,7 @@
 
 <img width="970" alt="rtl_icecast" src="https://github.com/user-attachments/assets/305a31e2-0fc4-49e5-905b-35808e5bc6da" />
 
-A command-line application that uses RTL-SDR to receive FM radio signals and stream them to an Icecast server in MP3 format.
+A command-line application that uses RTL-SDR to receive FM and AM radio signals and stream them to an Icecast server in MP3 format.
 
 The main target usage for this app is to stream your local HAM FM repeater audio to your public shoutcast/icecast server with just a RTL-SDR USB-receiver and for example Raspberry Pi. It can be used to stream broadcast FM too, of course.
 
@@ -11,24 +11,30 @@ The app is native app and uses the RTL-SDR on hardware level directly. No need t
 ## Features
 
 - Wide and Narrow FM demodulation
+- AM (Amplitude Modulation) demodulation
 - Adjustable squelch with threshold and hold time
 - Low-cut filter with configurable frequency (to cut off FM repeater tone-squelch)
 - Real-time status display with signal strength meter
 - Automatic reconnection to Icecast server
 - MP3 encoding with configurable quality and bitrate
 - Configuration via config file or command-line arguments
+- Manual gain control
+- PPM correction for RTL-SDR oscillator inaccuracy
 
 ## Requirements
 
 - RTL-SDR compatible USB dongle
 - Icecast server (local or remote)
 - Debian/Ubuntu Linux system (or other Linux distributions with equivalent packages)
+- macOS with Homebrew (for macOS users)
 
 ## Installation
 
 ### 1. Install Required Dependencies
 
-On Debian/Ubuntu systems, install the required libraries:
+#### On Debian/Ubuntu systems:
+
+Install the required libraries:
 
 ```bash
 sudo apt update
@@ -49,14 +55,29 @@ sudo make install
 sudo ldconfig
 ```
 
+#### On macOS:
+
+Install the required libraries using Homebrew:
+
+```bash
+# Install Homebrew if you don't have it already
+# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install dependencies
+brew install librtlsdr liquid-dsp lame libshout
+```
+
 ### 2. Clone and Build RTL-Icecast
 
 ```bash
-git clone [THIS_REPO](https://github.com/j0uni/rtl_iceccast
+git clone https://github.com/j0uni/rtl_icecast
 cd rtl_icecast
 make
 ```
 
+The build will automatically detect your operating system and use the appropriate compiler flags. All build artifacts will be placed in the `build` directory.
+
+The executable will be located at `build/rtl_icecast`.
 
 ## Configuration
 
@@ -66,14 +87,14 @@ Create a `config.ini` file in the same directory as the executable:
 [rtl_sdr]
 sample_rate = 1024000
 center_freq = 99.9
-gain_mode = 0
+gain_mode = 0        ; 0 = automatic gain, 1 = manual gain
+tuner_gain = 90      ; in tenths of dB (e.g., 90 = 9.0 dB), only used when gain_mode = 1
+ppm_correction = 0   ; frequency correction in PPM (0 = disabled)
+fm_mode = wide       ; Options: wide, narrow, am
 
 [audio]
 audio_rate = 48000
-wide_fm = true
-
-[mp3]
-bitrate = 128
+mp3_bitrate = 128
 quality = 2
 
 [icecast]
@@ -98,9 +119,14 @@ order = 5
 
 Adjust the values according to your needs:
 
-- `center_freq`: The FM frequency to tune to in MHz
+- `center_freq`: The frequency to tune to in MHz
 - `gain_mode`: 0 for auto gain, 1 for manual gain
-- `wide_fm`: true for commercial FM radio, false for narrow FM (amateur radio, etc.)
+- `tuner_gain`: Gain value in tenths of dB (e.g., 90 = 9.0 dB), only used when gain_mode = 1
+- `ppm_correction`: Frequency correction in Parts Per Million (PPM) to compensate for RTL-SDR oscillator inaccuracy
+- `fm_mode`: 
+  - `wide` for commercial FM radio (75 kHz deviation)
+  - `narrow` for narrow FM (12.5 kHz deviation, used for amateur radio, etc.)
+  - `am` for Amplitude Modulation (AM broadcast, aircraft communications, etc.)
 - `host`, `port`, `mount`, `user`, `password`: Your Icecast server details
 
 ## Usage
@@ -181,8 +207,7 @@ You can access the Icecast web interface at http://localhost:8000
 
 ## License
 
-(C) Jouni OH3CUF 2025
-(C) Jarmo OH3BSG 2025
+(C) Jouni OH3CUF 2025,  (C) Jarmo OH3BSG 2025
 
 This project is licensed under the MIT License - see the LICENSE file for details. 
 

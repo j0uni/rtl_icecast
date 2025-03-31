@@ -27,10 +27,10 @@ echo "=== Building Project ==="
 make VERBOSE=1
 
 echo "=== Build Results ==="
-if [ -f rtl_icecast ]; then
-    ls -l rtl_icecast
-    file rtl_icecast
-    ldd rtl_icecast
+if [ -f build/rtl_icecast ]; then
+    ls -l build/rtl_icecast
+    file build/rtl_icecast
+    ldd build/rtl_icecast
 else
     echo "ERROR: Build failed - rtl_icecast binary not found"
     exit 1
