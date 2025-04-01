@@ -753,7 +753,7 @@ void change_frequency(double new_freq_mhz) {
         std::cerr << "Failed to set frequency to " << new_freq_mhz << " MHz\n";
     } else {
         g_config.center_freq = new_freq_mhz;
-        std::cout << "Tuned to " << new_freq_mhz << " MHz\n";
+        //std::cout << "Tuned to " << new_freq_mhz << " MHz\n";
     }
 }
 
@@ -815,7 +815,7 @@ int main(int argc, char* argv[]) {
 
     printf("scanlist size %ld\n", g_config.scanlist.size());
     for (uint8_t i = 0; i < g_config.scanlist.size(); i++ ) {
-        printf("Taajuus %d,  kanavanimi %s\n", g_config.scanlist[i].frequency, g_config.scanlist[i].ch_name.c_str());
+        printf("Taajuus %f,  kanavanimi %s\n", g_config.scanlist[i].frequency, g_config.scanlist[i].ch_name.c_str());
         //printf("Taajuus %f \n", g_config.scanlist[i]);
     }
 
@@ -1004,11 +1004,10 @@ int main(int argc, char* argv[]) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
-#if 1
-        if (squelch_active == true) {
-            scanner->NextCh();
+        double frq = scanner->NextCh(squelch_active);
+        if (frq != 0) {
+            change_frequency(frq);
         }
-#endif // 0
     }
     
     // Cleanup

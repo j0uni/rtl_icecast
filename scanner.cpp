@@ -1,4 +1,5 @@
 #include <vector>
+#include <chrono>
 #include <rtl-sdr.h>
 #include "scanner.h"
 
@@ -13,20 +14,28 @@ Scanner::Scanner(rtlsdr_dev_t *dev, std::vector<ScanList> scanlist) {
     printf("[Scanner] scanlist size %ld %ld\n", channels.size(), scanlist.size());
 
     for (uint8_t i = 0; i < channels.size(); i++ ) {
-        printf("[Scanner] Frq %d  name %s\n", channels[i].frequency, channels[i].ch_name.c_str());
+        printf("[Scanner] Frq %f  name %s\n", channels[i].frequency, channels[i].ch_name.c_str());
     }
 }
 
-void Scanner::NextCh(void)
+double Scanner::NextCh(bool sql)
 {
-    ch_index++;
+    static auto last_time = std::chrono::steady_clock::now();
+    double retval = 0.0f;
 
-    if (ch_index >= channels.size()) {
-        ch_index = 0;
+    if (sql == true) {
+        auto now = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() >= 100) {
+            last_time = now;
+            ch_index++;
+
+            if (ch_index >= channels.size()) {
+                ch_index = 0;
+            }
+        
+            retval = channels[ch_index].frequency;
+        } 
     }
 
-    uint32_t freq = channels[ch_index].frequency;
-
-    rtlsdr_set_center_freq(g_dev, freq);
-    //printf("ret = %d %d\n", ret, g_dev);
+    return retval;
 }

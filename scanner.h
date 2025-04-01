@@ -6,20 +6,19 @@
 #include <rtl-sdr.h>
 
 typedef struct {
-    uint32_t frequency;
+    double frequency;
     std::string modulation_mode;
     std::string ch_name;
 } ScanList;
 
 class Scanner {
     private:
-        //rtlsdr_dev_t *device;
         std::vector<ScanList> channels;
         uint8_t ch_index;
 
     public:
         Scanner(rtlsdr_dev_t *dev, std::vector<ScanList> scanlist);
-        void NextCh(void);
+        double NextCh(bool frq);
 };
 
 #endif // _SCANNER_H

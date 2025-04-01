@@ -216,7 +216,7 @@ Config parse_config(const std::string &filename) {
     if (ini_data.count("scanlist")) {
         char delimiter = ',';
         auto& section = ini_data["scanlist"];
-        
+
         //uint8_t index = 0;
         for (std::map<std::string, std::string>::iterator it = section.begin(); it != section.end(); it++) {
             //printf("%s\n", it->second.c_str());
@@ -224,7 +224,7 @@ Config parse_config(const std::string &filename) {
             //printf("%s %s %s\n", result[0].c_str(), result[1].c_str(), result[2].c_str());
 
             ScanList Channel;
-            Channel.frequency = std::stof(result[0]) * 1000000;
+            Channel.frequency = std::stod(result[0]);
             Channel.modulation_mode = result[1];
             Channel.ch_name = result[2];
             config.scanlist.push_back(Channel);
