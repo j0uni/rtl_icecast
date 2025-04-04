@@ -138,11 +138,12 @@ Adjust the values according to your needs:
 ### Command-line Options
 
 - `-c, --config <file>`: Use specified config file (default: config.ini)
+- `-v, --verbose`: Run in verbose mode (default: false)
 - `-h, --help`: Show help message
 
 ## Status Display
 
-The application displays real-time status information:
+With `--verbose`, the application displays real-time status information:
 
 ```
 [rtl_icecast] 99.900 MHz | WFM | Squelch: OFF | Buffer: 2.000s | Signal: [########        ] -15.234 dB | mp3-Queue: 2/10 | Last: 4096 bytes | Connected
@@ -157,6 +158,26 @@ This shows:
 - MP3 queue status
 - Last packet size
 - Icecast connection status
+
+## Linux Systemd Service
+
+Edit the file _rtl-icecast.service_ to your liking and place it in ~/.local/share/systemd/user. Make sure your configuration file is in the location named in the systemd unit file (_~/.config/rtl_icecast/config.ini_ by default). Then run:
+
+    systemctl --user daemon-reload
+
+and:
+
+    systemctl --user enable rtl-icecast.service
+
+and finally:
+
+    systemctl start rtl-icecast.service
+
+to launch the service. For extra credit, keep the systemd user service running when you log out by running:
+
+    sudo loginctl enable-linger <USERNAME>
+
+(where \<USERNAME\> is your Linux username).
 
 ## Troubleshooting
 

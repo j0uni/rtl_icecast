@@ -19,6 +19,9 @@
 // Global configuration
 Config g_config;
 
+// Verbose operating mode
+bool verbose = false;
+
 // FM mode selection
 enum class FMMode {
     NARROW,
@@ -472,7 +475,9 @@ void update_icecast_metadata(shout_t* shout, double freq_mhz, float signal_db) {
         if (result != SHOUTERR_SUCCESS) {
             std::cerr << "Error updating metadata: " << shout_get_error(shout) << std::endl;
         } else {
-            std::cout << "Updated metadata: " << artist << " - " << full_title << std::endl;
+            if (verbose) {
+		std::cout << "Updated metadata: " << artist << " - " << full_title << std::endl;
+            }
         }
     } catch (...) {
         std::cerr << "Exception in metadata update" << std::endl;
@@ -737,6 +742,7 @@ void print_usage() {
     std::cout << "Usage: rtl_icecast [options]\n"
               << "Options:\n"
               << "  -c, --config <file>    Use specified config file (default: config.ini)\n"
+              << "  -v, --verbose          Operate in verbose mode, displaying status every few seconds.\n"
               << "  -h, --help             Show this help message\n"
               << std::endl;
 }
@@ -781,6 +787,8 @@ int main(int argc, char* argv[]) {
         if (arg == "-h" || arg == "--help") {
             print_usage();
             return 0;
+        } else if (arg == "-v" || arg == "--verbose") {
+            verbose = true;
         } else if (arg == "-c" || arg == "--config") {
             if (i + 1 < argc) {
                 config_file = argv[++i];
@@ -955,7 +963,9 @@ int main(int argc, char* argv[]) {
     {
         auto now = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(now - last_status_time).count() >= 1) {
-            print_status();
+            if (verbose) {
+                print_status();
+            }
             last_status_time = now;
         }
 
