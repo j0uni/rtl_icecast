@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <fcntl.h>
 #include "config.h"
+#include "scanner.h"
 
 // Global configuration
 Config g_config;
@@ -30,6 +31,8 @@ bool quiet = false;
 
 // Global RTL-SDR device pointer
 rtlsdr_dev_t *g_dev = nullptr;
+
+Scanner *scanner; // = new Scanner(g_dev, g_config.scanlist);
 
 // Squelch state
 std::atomic<bool> squelch_active{false};
@@ -409,7 +412,7 @@ void rtl_callback(unsigned char *buf, uint32_t len, void *) {
             float sample = is_squelched ? 0.0f : resampled_buffer[i];
             audio_buffer.push_back(sample);
         }
-    }      
+    }
 }
 
 // Thread function for RTL-SDR reading
@@ -756,7 +759,7 @@ void change_frequency(double new_freq_mhz) {
         std::cerr << "Failed to set frequency to " << new_freq_mhz << " MHz\n";
     } else {
         g_config.center_freq = new_freq_mhz;
-        std::cout << "Tuned to " << new_freq_mhz << " MHz\n";
+        //std::cout << "Tuned to " << new_freq_mhz << " MHz\n";
     }
 }
 
@@ -818,6 +821,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    printf("scanlist size %ld\n", g_config.scanlist.size());
+    for (uint8_t i = 0; i < g_config.scanlist.size(); i++ ) {
+        printf("Taajuus %f,  kanavanimi %s\n", g_config.scanlist[i].frequency, g_config.scanlist[i].ch_name.c_str());
+        //printf("Taajuus %f \n", g_config.scanlist[i]);
+    }
+
+    scanner = new Scanner(g_dev, g_config.scanlist);
+
     // Initialize squelch state
     last_signal_above_threshold = std::chrono::steady_clock::now();
     
@@ -875,6 +886,8 @@ int main(int argc, char* argv[]) {
     }
     rtlsdr_reset_buffer(g_dev);
     
+    //Scanner scanner(g_dev, g_config.scanlist);
+
     // Initialize resampler
     float resamp_ratio = (float)g_config.audio_rate / g_config.sample_rate * 1.00f;  
     resampler = msresamp_rrrf_create(resamp_ratio, 60.0f);
@@ -1011,6 +1024,13 @@ int main(int argc, char* argv[]) {
         } else {
             // Add a small sleep to prevent busy waiting
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        if (g_config.scan == true) {
+            double frq = scanner->NextCh(squelch_active);
+            if (frq != 0) {
+                change_frequency(frq);
+            }
         }
     }
     

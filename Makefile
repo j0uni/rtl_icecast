@@ -13,7 +13,7 @@ else
     LDFLAGS = -lrtlsdr -lliquid -lmp3lame -lshout -lm -lpthread
 endif
 
-SOURCES = rtl_icecast.cpp config.cpp
+SOURCES = rtl_icecast.cpp config.cpp scanner.cpp
 BUILD_DIR = build
 OBJECTS = $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
 TARGET = $(BUILD_DIR)/rtl_icecast
