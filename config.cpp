@@ -209,16 +209,21 @@ Config parse_config(const std::string &filename) {
         }
     }
 
-#if 0
     // Parse scan section
     if (ini_data.count("scanner")) {
         auto& section = ini_data["scanner"];
 
         if (section.count("scan")) {
-            config.scan = section["scan"];
+            //config.scan = section["scan"];
+            std::string enabled = section["scan"];
+            std::transform(enabled.begin(), enabled.end(), enabled.begin(), ::tolower);
+            config.squelch_enabled = (enabled == "true" || enabled == "1");
+        }
+
+        if (section.count("step_delay_ms")) {
+            config.step_delay_ms = std::stoi(section["step_delay"]);
         }
     }
-#endif // 0
 
     // Parse scanlist section
     if (ini_data.count("scanlist")) {

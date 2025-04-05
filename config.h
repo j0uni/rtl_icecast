@@ -28,6 +28,7 @@ struct Config {
 
     // Scanner settings
     bool scan;
+    uint8_t step_delay_ms;
 
     // Scanlist
     std::vector<ScanList> scanlist;

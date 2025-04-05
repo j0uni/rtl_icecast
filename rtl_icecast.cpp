@@ -1016,9 +1016,11 @@ int main(int argc, char* argv[]) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
-        double frq = scanner->NextCh(squelch_active);
-        if (frq != 0) {
-            change_frequency(frq);
+        if (g_config.scan == true) {
+            double frq = scanner->NextCh(squelch_active);
+            if (frq != 0) {
+                change_frequency(frq);
+            }
         }
     }
     
