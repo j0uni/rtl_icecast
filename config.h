@@ -27,8 +27,8 @@ struct Config {
     ModulationMode mode;
 
     // Scanner settings
-    bool scan;
-    uint8_t step_delay_ms;
+    bool scanEnabled;
+    uint16_t step_delay_ms;
 
     // Scanlist
     std::vector<ScanList> scanlist;

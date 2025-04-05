@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <rtl-sdr.h>
 
 typedef struct {
     double frequency;
@@ -14,10 +13,10 @@ typedef struct {
 class Scanner {
     private:
         std::vector<ScanList> channels;
-        uint8_t ch_index;
+        std::size_t ch_index;
 
     public:
-        Scanner(rtlsdr_dev_t *dev, std::vector<ScanList> scanlist);
+        Scanner(std::vector<ScanList> scanlist);
         double NextCh(bool frq);
 };
 

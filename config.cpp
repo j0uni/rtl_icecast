@@ -214,7 +214,6 @@ Config parse_config(const std::string &filename) {
         auto& section = ini_data["scanner"];
 
         if (section.count("scan")) {
-            //config.scan = section["scan"];
             std::string enabled = section["scan"];
             std::transform(enabled.begin(), enabled.end(), enabled.begin(), ::tolower);
             config.squelch_enabled = (enabled == "true" || enabled == "1");
@@ -230,11 +229,8 @@ Config parse_config(const std::string &filename) {
         char delimiter = ',';
         auto& section = ini_data["scanlist"];
 
-        //uint8_t index = 0;
         for (std::map<std::string, std::string>::iterator it = section.begin(); it != section.end(); it++) {
-            //printf("%s\n", it->second.c_str());
             std::vector<std::string> result = splitString(it->second, delimiter);
-            //printf("%s %s %s\n", result[0].c_str(), result[1].c_str(), result[2].c_str());
 
             ScanList Channel;
             Channel.frequency = std::stod(result[0]);
