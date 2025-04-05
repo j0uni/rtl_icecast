@@ -87,6 +87,14 @@ Config parse_config(const std::string &filename) {
             config.gain_mode = std::stoi(section["gain_mode"]);
         }
         
+        if (section.count("tuner_gain")) {
+            config.tuner_gain = std::stoi(section["tuner_gain"]);
+        }
+        
+        if (section.count("ppm_correction")) {
+            config.ppm_correction = std::stoi(section["ppm_correction"]);
+        }
+        
         if (section.count("fm_mode")) {
             std::string mode = section["fm_mode"];
             std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);

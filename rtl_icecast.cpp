@@ -844,6 +844,13 @@ int main(int argc, char* argv[]) {
     
     // Convert MHz to Hz for the RTL-SDR API
     uint32_t freq_hz = static_cast<uint32_t>(g_config.center_freq * 1e6);
+    
+    // Apply PPM correction if specified
+    if (g_config.ppm_correction != 0) {
+        printf("Setting frequency correction to %d ppm\n", g_config.ppm_correction);
+        rtlsdr_set_freq_correction(g_dev, g_config.ppm_correction);
+    }
+    
     rtlsdr_set_center_freq(g_dev, freq_hz); 
     rtlsdr_set_sample_rate(g_dev, g_config.sample_rate);
     rtlsdr_set_tuner_gain_mode(g_dev, g_config.gain_mode);
@@ -851,18 +858,23 @@ int main(int argc, char* argv[]) {
         
         int tuner_gains[16];
         int num_gains = rtlsdr_get_tuner_gains(g_dev, tuner_gains);
-        printf("Allowed gain setting values (1/10 dB): %d\n", num_gains);
+        printf("Allowed gain setting values (1/10 dB): ");
         for (int i = 0; i < num_gains; i++) {
             printf("%d ", tuner_gains[i]);
         }
         printf("\n");   
         
-        // Valid gain values (in t/*enths of a dB) for the E4000 tuner:
-        // -10, 15, 40, 65, 90, 115, 140, 165, 190,
-        // 215, 240, 290, 340, 420, 430, 450, 470, 490
-        // 15dB is the default gain for the E4000 tuner
-
-        rtlsdr_set_tuner_gain(g_dev, 90);
+        // Set the specified gain or use a default if not specified
+        int gain_to_use = g_config.tuner_gain;
+        if (gain_to_use == 0) {
+            // Default to 9.0 dB (90 tenths of a dB) if not specified
+            gain_to_use = 90;
+            printf("No specific gain value provided, using default: %d.%d dB\n", gain_to_use/10, gain_to_use%10);
+        } else {
+            printf("Setting tuner gain to %d.%d dB\n", gain_to_use/10, gain_to_use%10);
+        }
+        
+        rtlsdr_set_tuner_gain(g_dev, gain_to_use);
     }
     rtlsdr_reset_buffer(g_dev);
     

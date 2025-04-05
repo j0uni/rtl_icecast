@@ -2,8 +2,10 @@
 sample_rate = 1024000
 
 center_freq_mhz = 145.75
-gain_mode = 0
-fm_mode = narrow    ; wide or narrow
+gain_mode = 0        ; 0 = automatic gain, 1 = manual gain
+tuner_gain = 90      ; in tenths of dB (e.g., 90 = 9.0 dB), only used when gain_mode = 1
+ppm_correction = 0   ; frequency correction in PPM (0 = disabled)
+fm_mode = narrow     ; wide or narrow
 
 [audio]
 audio_rate = 48000

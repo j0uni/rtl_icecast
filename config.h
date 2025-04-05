@@ -21,6 +21,8 @@ struct Config {
     int sample_rate;
     double center_freq;  // in MHz
     int gain_mode;
+    int tuner_gain;      // in tenths of dB, only used when gain_mode = 1
+    int ppm_correction;  // frequency correction in PPM
     bool wide_fm;
     ModulationMode mode;
 
@@ -65,6 +67,8 @@ struct Config {
         sample_rate(1024000),
         center_freq(99.9),  // 99.9 MHz
         gain_mode(0),
+        tuner_gain(0),
+        ppm_correction(0),
         wide_fm(true),
         audio_rate(48000),
         mp3_bitrate(128),
