@@ -1,13 +1,9 @@
 #include <vector>
 #include <chrono>
-#include <rtl-sdr.h>
 #include "scanner.h"
 
-extern rtlsdr_dev_t *g_dev;
-
 Scanner::Scanner(rtlsdr_dev_t *dev, std::vector<ScanList> scanlist) {
-    //device = dev;
-    ch_index = 8;
+    ch_index = channels.size();
 
     copy(scanlist.begin(), scanlist.end(), back_inserter(channels));
 
