@@ -6,12 +6,15 @@ A command-line application that uses RTL-SDR to receive FM and AM radio signals 
 
 The main target usage for this app is to stream your local HAM FM repeater audio to your public shoutcast/icecast server with just a RTL-SDR USB-receiver and for example Raspberry Pi. It can be used to stream broadcast FM too, of course.
 
+This program also contains a scanner functionality which one can use for example to scan your local airbands or monitor all local HAM radio FM channels, and much more.
+
 The app is native app and uses the RTL-SDR on hardware level directly. No need to pipe or install anything extra. This works out of the box (well, I hope!).
 
 ## Features
 
 - Wide and Narrow FM demodulation
 - AM (Amplitude Modulation) demodulation
+- Scanning functionality (user defined frequency list)
 - Adjustable squelch with threshold and hold time
 - Low-cut filter with configurable frequency (to cut off FM repeater tone-squelch)
 - Real-time status display with signal strength meter
@@ -86,35 +89,53 @@ Create a `config.ini` file in the same directory as the executable:
 ```ini
 [rtl_sdr]
 sample_rate = 1024000
-center_freq = 99.9
+
+center_freq_mhz = 145.75
 gain_mode = 0        ; 0 = automatic gain, 1 = manual gain
 tuner_gain = 90      ; in tenths of dB (e.g., 90 = 9.0 dB), only used when gain_mode = 1
 ppm_correction = 0   ; frequency correction in PPM (0 = disabled)
-fm_mode = wide       ; Options: wide, narrow, am
+fm_mode = narrow     ; wide or narrow
 
 [audio]
 audio_rate = 48000
 mp3_bitrate = 128
-quality = 2
+mp3_quality = 2
+audio_buffer_seconds = 2
 
-[icecast]
-host = localhost
-port = 8000
-mount = /fm.mp3
-user = source
-password = hackme
-reconnect_attempts = 10
-reconnect_delay_ms = 5000
+[audio_filters]
+lowcut_enabled = true    ; true or false
+lowcut_freq = 500.0      ; in Hz, frequencies below this will be attenuated
+lowcut_order = 4         ; filter order (higher = steeper cutoff, but more CPU)
 
 [squelch]
-enabled = false
-threshold = -30
-hold_time = 500
+enabled = true    ; true or false
+threshold = -20.0  ; in dB, signals below this will be muted
+hold_time = 500    ; in milliseconds, how long to keep squelch open after signal drops
 
-[lowcut]
-enabled = false
-freq = 300
-order = 5
+[icecast]
+host = server.com
+port = 8000
+mount = /rtl-fm-stream.mp3
+station_title=station-example
+password = your_streamer_password
+user = source
+protocol = http    ; only http is supported for now
+format = mp3
+reconnect_attempts = 5
+reconnect_delay_ms = 2000 
+
+[scanner]
+scan = true ; false
+step_delay = 100 ; ms
+
+[scanlist]
+ch0 = 127.100,AM,Sector G
+ch1 = 118.700,AM,EFTP TWR
+ch2 = 126.200,AM,EFTP Radar
+ch5 = 119.100,AM,EFHK a
+ch6 = 119.900,AM,EFHK b
+ch7 = 126.900,AM,Pietari
+ch8 = 132.325,AM,Sector M
 ```
 
 Adjust the values according to your needs:
