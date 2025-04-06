@@ -53,6 +53,19 @@ std::map<std::string, std::map<std::string, std::string>> parse_ini(const std::s
     return result;
 }
 
+std::vector<std::string> splitString(const std::string& str, char delimiter) {
+    std::vector<std::string> substrings;
+    std::stringstream ss(str);
+    std::string item;
+
+    while (std::getline(ss, item, delimiter)) {
+        substrings.push_back(item);
+    }
+
+    return substrings;
+}
+
+
 // Implementation of parse_config function
 Config parse_config(const std::string &filename) {
     Config config;
@@ -195,7 +208,38 @@ Config parse_config(const std::string &filename) {
             config.reconnect_delay_ms = std::stoi(section["reconnect_delay_ms"]);
         }
     }
-    
+
+    // Parse scan section
+    if (ini_data.count("scanner")) {
+        auto& section = ini_data["scanner"];
+
+        if (section.count("scan")) {
+            std::string enabled = section["scan"];
+            std::transform(enabled.begin(), enabled.end(), enabled.begin(), ::tolower);
+            config.squelch_enabled = (enabled == "true" || enabled == "1");
+        }
+
+        if (section.count("step_delay_ms")) {
+            config.step_delay_ms = std::stoi(section["step_delay"]);
+        }
+    }
+
+    // Parse scanlist section
+    if (ini_data.count("scanlist")) {
+        char delimiter = ',';
+        auto& section = ini_data["scanlist"];
+
+        for (std::map<std::string, std::string>::iterator it = section.begin(); it != section.end(); it++) {
+            std::vector<std::string> result = splitString(it->second, delimiter);
+
+            ScanList Channel;
+            Channel.frequency = std::stod(result[0]);
+            Channel.modulation_mode = result[1];
+            Channel.ch_name = result[2];
+            config.scanlist.push_back(Channel);
+        }
+    }
+
     return config;
 }
 

@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <fcntl.h>
 #include "config.h"
+#include "scanner.h"
 
 // Global configuration
 Config g_config;
@@ -30,6 +31,8 @@ bool quiet = false;
 
 // Global RTL-SDR device pointer
 rtlsdr_dev_t *g_dev = nullptr;
+
+Scanner *scanner = nullptr;
 
 // Squelch state
 std::atomic<bool> squelch_active{false};
@@ -409,7 +412,7 @@ void rtl_callback(unsigned char *buf, uint32_t len, void *) {
             float sample = is_squelched ? 0.0f : resampled_buffer[i];
             audio_buffer.push_back(sample);
         }
-    }      
+    }
 }
 
 // Thread function for RTL-SDR reading
@@ -818,6 +821,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    printf("scanlist size %ld\n", g_config.scanlist.size());
+    for (std::size_t ind = 0; ind < g_config.scanlist.size(); ind++ ) {
+        printf("Frequency %f,  channel name %s\n", g_config.scanlist[ind].frequency, g_config.scanlist[ind].ch_name.c_str());
+    }
+
+    scanner = new Scanner(g_config.scanlist);
+
     // Initialize squelch state
     last_signal_above_threshold = std::chrono::steady_clock::now();
     
@@ -1012,6 +1022,13 @@ int main(int argc, char* argv[]) {
             // Add a small sleep to prevent busy waiting
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+
+        if (g_config.scanEnabled) {
+            double frq = scanner->NextCh(squelch_active);
+            if (frq != 0) {
+                change_frequency(frq);
+            }
+        }
     }
     
     // Cleanup
@@ -1030,6 +1047,7 @@ int main(int argc, char* argv[]) {
         iirfilt_rrrf_destroy(lowcut_filter);
     }
     
+    delete scanner;
     rtlsdr_close(g_dev);
     lame_close(lame);
     shout_close(shout);

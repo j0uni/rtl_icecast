@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstdint>
 #include <stdexcept>
+#include <vector>
+#include "scanner.h"
 
 enum class ModulationMode {
     AM_MODE,
@@ -23,6 +25,13 @@ struct Config {
     int ppm_correction;  // frequency correction in PPM
     bool wide_fm;
     ModulationMode mode;
+
+    // Scanner settings
+    bool scanEnabled;
+    uint16_t step_delay_ms;
+
+    // Scanlist
+    std::vector<ScanList> scanlist;
 
     // Audio settings
     int audio_rate;
