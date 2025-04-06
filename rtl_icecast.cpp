@@ -827,6 +827,7 @@ int main(int argc, char* argv[]) {
     }
 
     scanner = new Scanner(g_config.scanlist);
+    scanner->SetStepDelay(g_config.step_delay_ms);
 
     // Initialize squelch state
     last_signal_above_threshold = std::chrono::steady_clock::now();

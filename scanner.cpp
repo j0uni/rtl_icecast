@@ -2,8 +2,6 @@
 #include <chrono>
 #include "scanner.h"
 
-#define SCANNER_DEFAULT_STEP_MS 100
-
 Scanner::Scanner(std::vector<ScanList> scanlist) {
     ch_index = channels.size();
 
@@ -23,7 +21,7 @@ double Scanner::NextCh(bool sql)
 
     if (sql == true) {
         auto now = std::chrono::steady_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() >= SCANNER_DEFAULT_STEP_MS) {
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() >= stepDelayMs) {
             last_time = now;
             ch_index++;
 
@@ -38,4 +36,9 @@ double Scanner::NextCh(bool sql)
     }
 
     return retval;
+}
+
+void Scanner::SetStepDelay(uint16_t delay)
+{
+    stepDelayMs = delay;
 }
