@@ -216,10 +216,10 @@ Config parse_config(const std::string &filename) {
         if (section.count("scan")) {
             std::string enabled = section["scan"];
             std::transform(enabled.begin(), enabled.end(), enabled.begin(), ::tolower);
-            config.squelch_enabled = (enabled == "true" || enabled == "1");
+            config.scanEnabled = (enabled == "true" || enabled == "1");
         }
 
-        if (section.count("step_delay_ms")) {
+        if (section.count("step_delay")) {
             config.step_delay_ms = std::stoi(section["step_delay"]);
         }
     }

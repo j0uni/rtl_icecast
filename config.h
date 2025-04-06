@@ -71,6 +71,8 @@ struct Config {
         tuner_gain(0),
         ppm_correction(0),
         wide_fm(true),
+        scanEnabled(false),
+        step_delay_ms(100),
         audio_rate(48000),
         mp3_bitrate(128),
         mp3_quality(2),
