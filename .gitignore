@@ -4,3 +4,4 @@ config.ini
 *.o
 rtl_icecast
 *.json
+.syncthing*
